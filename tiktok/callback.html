@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TikTok connection | Brand Mention Monitor</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header"><a class="brand" href="/">Brand Mention Monitor</a><nav aria-label="Main navigation"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav></header>
+    <main class="legal shell">
+      <p class="eyebrow">TikTok connection</p>
+      <h1 id="title">Connection received.</h1>
+      <p id="message">Your TikTok authorization response was received.</p>
+      <p class="form-note" id="details"></p>
+      <div class="actions"><a class="button primary" href="/">Return to Brand Mention Monitor</a></div>
+    </main>
+    <script>
+      const query = new URLSearchParams(window.location.search);
+      const error = query.get("error");
+      const code = query.get("code");
+      const returnedState = query.get("state");
+      const savedState = sessionStorage.getItem("tiktok_oauth_state");
+      const title = document.getElementById("title");
+      const message = document.getElementById("message");
+      const details = document.getElementById("details");
+      if (error) {
+        title.textContent = "TikTok connection was cancelled.";
+        message.textContent = "No TikTok data was connected. You can return and try again.";
+      } else if (!code) {
+        title.textContent = "No authorization response found.";
+        message.textContent = "Start the connection from the Brand Mention Monitor website.";
+      } else if (!returnedState || returnedState !== savedState) {
+        title.textContent = "Connection could not be verified.";
+        message.textContent = "The security state did not match. Please start the connection again.";
+      } else {
+        details.textContent = "The authorization code was received. Token exchange must be completed by the application server, where the client secret remains private.";
+      }
+    </script>
+  </body>
+</html>

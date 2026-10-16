@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connect TikTok | Brand Mention Monitor</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header"><a class="brand" href="/">Brand Mention Monitor</a><nav aria-label="Main navigation"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a class="nav-cta" href="/contact.html">Contact</a></nav></header>
+    <main class="legal shell connect-page">
+      <p class="eyebrow">Authorized connection</p>
+      <h1>Connect your TikTok account.</h1>
+      <p>Sign in with TikTok to authorize Brand Mention Monitor to receive your basic TikTok profile information. This connection does not give us your password and can be removed from your TikTok settings.</p>
+      <div class="actions"><button class="button primary" id="connect" type="button">Continue with TikTok</button><a class="button secondary" href="/">Cancel</a></div>
+      <p class="form-note" role="status"></p>
+    </main>
+    <script>
+      const clientKey = "awtgxh4nj9qm6r8r";
+      const redirectUri = "https://brand-mention-monitor.onrender.com/tiktok/callback.html";
+      const state = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+      sessionStorage.setItem("tiktok_oauth_state", state);
+      document.getElementById("connect").addEventListener("click", () => {
+        const params = new URLSearchParams({ client_key: clientKey, response_type: "code", scope: "user.info.basic", redirect_uri: redirectUri, state });
+        window.location.href = "https://www.tiktok.com/v2/auth/authorize/?" + params.toString();
+      });
+    </script>
+  </body>
+</html>
