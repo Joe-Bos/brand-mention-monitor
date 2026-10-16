@@ -34,7 +34,23 @@
         title.textContent = "Connection could not be verified.";
         message.textContent = "The security state did not match. Please start the connection again.";
       } else {
-        details.textContent = "The authorization code was received. Token exchange must be completed by the application server, where the client secret remains private.";
+        details.textContent = "Completing the secure connection…";
+        fetch("https://brand-mention-monitor-api.onrender.com/api/tiktok/exchange", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code })
+        }).then(async (response) => {
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.details || result.error || "Connection failed");
+          const user = result.user || {};
+          title.textContent = "TikTok connected successfully.";
+          message.textContent = user.display_name ? `Connected account: ${user.display_name}` : "Your TikTok account is connected.";
+          details.textContent = "Your authorization was completed securely. Tokens remain on the application server.";
+        }).catch((connectionError) => {
+          title.textContent = "TikTok authorization received.";
+          message.textContent = "TikTok returned an authorization code, but the server could not complete the connection yet.";
+          details.textContent = connectionError.message;
+        });
       }
     </script>
   </body>

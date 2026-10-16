@@ -7,6 +7,13 @@ const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
 const redirectUri = "https://brand-mention-monitor.onrender.com/tiktok/callback.html";
 
 app.use(express.json({ limit: "32kb" }));
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://brand-mention-monitor.onrender.com");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, configured: Boolean(clientKey && clientSecret) });
