@@ -16,13 +16,23 @@
       <p class="form-note" role="status"></p>
     </main>
     <script>
-      const clientKey = "sbawfb85v8clov0fqz";
-      const redirectUri = "https://brand-mention-monitor.onrender.com/tiktok/callback.html";
-      const state = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-      sessionStorage.setItem("tiktok_oauth_state", state);
-      document.getElementById("connect").addEventListener("click", () => {
-        const params = new URLSearchParams({ client_key: clientKey, response_type: "code", scope: "user.info.basic", redirect_uri: redirectUri, state });
-        window.location.href = "https://www.tiktok.com/v2/auth/authorize/?" + params.toString();
+      const button = document.getElementById("connect");
+      const note = document.querySelector(".form-note");
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        note.textContent = "Preparing TikTok connection…";
+        try {
+          const configResponse = await fetch("https://brand-mention-monitor-api.onrender.com/api/tiktok/config");
+          const config = await configResponse.json();
+          if (!configResponse.ok) throw new Error(config.error || "TikTok connection is not configured");
+          const state = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+          sessionStorage.setItem("tiktok_oauth_state", state);
+          const params = new URLSearchParams({ client_key: config.client_key, response_type: "code", scope: "user.info.basic", redirect_uri: config.redirect_uri, state });
+          window.location.href = "https://www.tiktok.com/v2/auth/authorize/?" + params.toString();
+        } catch (error) {
+          button.disabled = false;
+          note.textContent = error instanceof Error ? error.message : "TikTok connection could not start.";
+        }
       });
     </script>
   </body>

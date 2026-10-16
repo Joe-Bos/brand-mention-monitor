@@ -4,7 +4,7 @@ const app = express();
 const port = process.env.PORT || 10000;
 const clientKey = process.env.TIKTOK_CLIENT_KEY;
 const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
-const redirectUri = "https://brand-mention-monitor.onrender.com/tiktok/callback.html";
+const redirectUri = process.env.TIKTOK_REDIRECT_URI || "https://brand-mention-monitor.onrender.com/tiktok/callback.html";
 
 app.use(express.json({ limit: "32kb" }));
 app.use((req, res, next) => {
@@ -17,6 +17,11 @@ app.use((req, res, next) => {
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, configured: Boolean(clientKey && clientSecret) });
+});
+
+app.get("/api/tiktok/config", (_req, res) => {
+  if (!clientKey) return res.status(503).json({ error: "tiktok_server_not_configured" });
+  res.json({ client_key: clientKey, redirect_uri: redirectUri });
 });
 
 app.post("/api/tiktok/exchange", async (req, res) => {
@@ -38,12 +43,18 @@ app.post("/api/tiktok/exchange", async (req, res) => {
     });
     const token = await tokenResponse.json();
     if (!tokenResponse.ok || token.error) return res.status(502).json({ error: "tiktok_token_exchange_failed", details: token.error_description || token.error || "TikTok rejected the code" });
+    if (!token.access_token) return res.status(502).json({ error: "tiktok_access_token_missing", details: "TikTok returned no access token", tiktok_response: token });
 
     const profileResponse = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,avatar_url,display_name", {
       headers: { Authorization: `Bearer ${token.access_token}` }
     });
     const profile = await profileResponse.json();
-    if (!profileResponse.ok || profile.error) return res.status(502).json({ error: "tiktok_profile_request_failed", details: profile.error?.message || "TikTok rejected the access token" });
+    if (!profileResponse.ok || profile.error?.code !== "ok") return res.status(502).json({
+      error: "tiktok_profile_request_failed",
+      details: profile.error?.message || "TikTok rejected the access token",
+      tiktok_code: profile.error?.code,
+      log_id: profile.error?.log_id
+    });
 
     res.json({ user: profile.data?.user || null });
   } catch (error) {
